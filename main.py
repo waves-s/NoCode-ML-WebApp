@@ -21,6 +21,10 @@ st.markdown(""" :blue[Clean Data:] Remove errors, duplicates, and unnecessary co
 # Step 2: Upload CSV
 st.markdown(""":blue[Upload Data:] Use the file/url uploader on sidebar. Select the target (prediction) column. """)
 
+# Patience
+st.markdown(""":blue[Please be patient. Analyzing data > 5 columns and 1000 rows can be slow... We are working on improving this.]""")
+
+
 # File uploader allows user to add their own Excel
 uploaded_file = st.sidebar.file_uploader("Upload your input file", type=['csv','xls','xlsx'])
 
