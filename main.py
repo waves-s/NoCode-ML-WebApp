@@ -13,7 +13,7 @@ st.sidebar.title('No-Code Machine Learning Prediction Model for Non-Techies')
 
 st.subheader(":blue[How to Use:]")
 # Purpose
-st.markdown(""":blue[Purpose of this App:] The aim of this app is to help users identify trend in data worth exploring without coding or machine learning knowledge/experience. It should be noted that this is a basic machine learning model. Further analysis is needed to address bias, overfitting, underfitting, and ensure dataset is balanced for classification problems.""")
+st.markdown(""":blue[Purpose of this App:] The aim of this app is to help users identify trends in data worth exploring without coding or machine learning knowledge/experience. It should be noted that this is a basic machine learning model. Further analysis is needed to address bias, overfitting, underfitting, and ensure dataset is balanced for classification problems.""")
 
 
 # Step 1: Clean Data
@@ -26,7 +26,7 @@ st.markdown(""":blue[Upload Data:] Use the file/url uploader on sidebar. Select 
 uploaded_file = st.sidebar.file_uploader("Upload your input file", type=['csv','xls','xlsx'])
 
 # Input field for URL
-url = st.sidebar.text_input("Or Provide Direct Download URL", "https://archive.ics.uci.edu/ml/machine-learning-databases/iris/iris.data")
+url = st.sidebar.text_input("Or Provide Direct Download URL",)
 
 if uploaded_file is not None:
     df,  numeric_cols, categorical_cols, target_column, regression_type = load_dataframe(uploaded_file)
