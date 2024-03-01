@@ -52,8 +52,10 @@ def random_forest_optimizer(df, numeric_cols, classification_cols, target_column
         #Currently no Feature Engineering is performed
         
         # Preprocessing for classification data
-        classification_transformer = Pipeline(steps=[
-            ('encoder', FunctionTransformer(label_encode_column, validate=False))])
+        # classification_transformer = Pipeline(steps=[
+        #     ('encoder', FunctionTransformer(label_encode_column, validate=False))])
+       classification_transformer = Pipeline(steps=[
+            ('encoder', OneHotEncoder(handle_unknown='ignore'))])
         
         # Feature Scaling - Use both StandardScaler and MinMaxScaler to determine best fit
         scalers = [('StandardScaler', StandardScaler()), ('MinMaxScaler', MinMaxScaler())]
