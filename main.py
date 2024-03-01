@@ -25,7 +25,7 @@ st.markdown(""":blue[Upload Data:] Use the file/url uploader on sidebar. Select 
 uploaded_file = st.sidebar.file_uploader("Upload your input file", type=['csv','xls','xlsx'])
 
 # Input field for URL
-url = st.sidebar.text_input("Or Provide Direct Download URL",)
+url = st.sidebar.text_input("Or Provide Direct Download URL", value=None, placeholder="Enter URL and press Enter", key='url')
 
 if uploaded_file is not None:
     df,  numeric_cols, categorical_cols, target_column, regression_type = load_dataframe(uploaded_file)
