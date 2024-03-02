@@ -1,7 +1,6 @@
 import streamlit as st
 from randomforest import random_forest, random_forest_optimizer
 from upload_data import load_dataframe, load_url
-from gradientdecent import gradeint_descent
 from generic_layout import generic_main, generic_footer
 
 
