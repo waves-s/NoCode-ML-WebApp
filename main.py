@@ -35,12 +35,15 @@ if uploaded_file is not None:
        random_forest(df, numeric_cols, categorical_cols, target_column, regression_type)
         
 elif url is not None:
-    
-    df,  numeric_cols, categorical_cols, target_column, regression_type = load_url(url)
-    if df is not None: 
-        random_forest(df, numeric_cols, categorical_cols, target_column, regression_type)
+    try:
+        st.write(url)
+        df,  numeric_cols, categorical_cols, target_column, regression_type = load_url(url)
+        if df is not None: 
+            random_forest(df, numeric_cols, categorical_cols, target_column, regression_type)
 
-    
+    except Exception as e:
+        st.error(f"Error: {e}")
+
 else:
     st.info('Please upload a file or enter a url to begin.')
     
