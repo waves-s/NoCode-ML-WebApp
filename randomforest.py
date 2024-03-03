@@ -168,7 +168,8 @@ def model_creation(df, numeric_cols, classification_cols, target_column, regress
         # Get feature importances
         feature_names = get_feature_names(preprocessor) 
         importances = clf.named_steps['model'].feature_importances_
-        feature_importance_df = pd.DataFrame(sorted(zip(importances, feature_names)), columns=['Value','Feature']).sort_values(by="Value", ascending=False)
+        feature_importance_df = pd.DataFrame(sorted(zip(importances, feature_names)), columns=['Value','Feature']).sort_values(by="Value", ascending=False,)
+        feature_importance_df.columns = ['Importance', 'Feature']
 
         if np.all(np.isnan(importances)):
             st.error("Are you sure your data set is clean? Could there be a column that completely relates to the target column 1 to 1? Please re-evaluate data to ensure it does not have errors and is meaninful")
