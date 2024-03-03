@@ -36,7 +36,6 @@ if uploaded_file is not None:
         
 elif url is not None:
     try:
-        st.write(url)
         df,  numeric_cols, categorical_cols, target_column, regression_type = load_url(url)
         if df is not None: 
             random_forest(df, numeric_cols, categorical_cols, target_column, regression_type)
