@@ -1,8 +1,7 @@
 import streamlit as st
-from randomforest import random_forest, random_forest_optimizer
+from randomforest import random_forest
 from upload_data import load_dataframe, load_url
 from generic_layout import generic_main, generic_footer
-
 
 
 # Streamlit interface

@@ -1,7 +1,6 @@
 import streamlit as st
 import pandas as pd
 import matplotlib.pyplot as plt
-import seaborn as sns
 import io
 from io import StringIO
 import csv
@@ -35,7 +34,7 @@ def load_url(url):
 
         # Convert numeric columns to numeric data types
         numeric_cols = df.columns[df.dtypes == object]
-        df[numeric_cols] = df[numeric_cols].apply(pd.to_numeric, errors='ignore') 
+        df[numeric_cols] = df[numeric_cols].apply(pd.to_numeric) 
 
         return pre_analyse_df(df)   
             
@@ -62,7 +61,7 @@ def load_dataframe(uploaded_file):
 
                 # Convert numeric columns to numeric data types
                 numeric_cols = df.columns[df.dtypes == object]
-                df[numeric_cols] = df[numeric_cols].apply(pd.to_numeric, errors='ignore') 
+                df[numeric_cols] = df[numeric_cols].apply(pd.to_numeric) 
             
             except Exception as e:
                 st.error(f"Error reading CSV file: {e}")

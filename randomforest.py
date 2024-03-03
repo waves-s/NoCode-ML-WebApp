@@ -31,14 +31,6 @@ def get_feature_names(column_transformer):
     return output_features
 
 
-# # Define a custom transformer to apply LabelEncoder
-# def label_encode_column(column):
-#     encoder = LabelEncoder()
-#     encoded_column = encoder.fit_transform(column)
-#     # Reshape the 1D array to 2D array
-#     return encoded_column.reshape(-1, 1)
-
-
 def rmse_accuracy(regression_type, y_test, y_pred):
     if regression_type == 'numeric':
         rmse = root_mean_squared_error(y_test, y_pred)
@@ -144,6 +136,9 @@ def model_creation(df, numeric_cols, classification_cols, target_column, regress
             ('cat', classification_transformer, classification_cols)
         ])
     
+    # # Fit preprocessing pipeline
+    # preprocessor.fit(X_train)
+    
     # Bundle preprocessing and modeling code in a pipeline
     clf = Pipeline(steps=[('preprocessor', preprocessor),
                         ('model', model)])
@@ -160,38 +155,19 @@ def model_creation(df, numeric_cols, classification_cols, target_column, regress
     if regression_type == 'classification':
         y_pred = label_encoder.inverse_transform(y_pred)
     
-    if determine_feature_importance == False:
-        return y_pred, y_test, current_metric
-    
-    elif determine_feature_importance == True:
-        # Feature Importance
-        try:
-            # if regression_type == 'classification':
-            #     st.write("Classification")
-            #     feature_importance_df = model.feature_importances_
-            #     importances = clf.named_steps['model'].feature_importances_
-            #     st.write(feature_importance_df, importances)
-            #     st.write(len(numeric_cols+classification_cols))
-            #     feature_importance_df = pd.DataFrame({'Feature': (numeric_cols+classification_cols), 'Importance': feature_importance_df})
-            #     feature_importance_df = feature_importance_df.sort_values(by='Importance', ascending=False)
-                
-            # elif regression_type == 'numeric':
-            # st.write("Numeric")
-            feature_names = get_feature_names(preprocessor)
-            importances = clf.named_steps['model'].feature_importances_
-            feature_importance_df = pd.DataFrame(sorted(zip(importances, feature_names)), columns=['Value','Feature']).sort_values(by="Value", ascending=False)
+    if determine_feature_importance == True:
+        # Get feature importances
+        feature_names = get_feature_names(preprocessor) 
+        importances = clf.named_steps['model'].feature_importances_
+        feature_importance_df = pd.DataFrame(sorted(zip(importances, feature_names)), columns=['Value','Feature']).sort_values(by="Value", ascending=False)
 
-            if np.all(np.isnan(importances)):
-                st.error("Are you sure your data set is clean? Could there be a column that completely relates to the target column 1 to 1? Please re-evaluate data to ensure it does not have errors and is meaninful")
-            else:
-
-                st.subheader("Top 10 Feature Importances:")
-                st.dataframe(feature_importance_df)
-            return y_pred, y_test, current_metric, feature_importance_df
-        
-        except Exception as e:
-            st.write(e)
-            st.error(f"An error occurred: {e}") 
+        if np.all(np.isnan(importances)):
+            st.error("Are you sure your data set is clean? Could there be a column that completely relates to the target column 1 to 1? Please re-evaluate data to ensure it does not have errors and is meaninful")
+        else:
+            st.subheader(":blue[Top 10 Feature Importances:]")
+            st.dataframe(feature_importance_df.head(10))
+            
+    return y_pred, y_test, current_metric
     
       
 def random_forest(df, numeric_cols, classification_cols, target_column, regression_type):
@@ -224,7 +200,7 @@ def random_forest(df, numeric_cols, classification_cols, target_column, regressi
                 st.dataframe(df_params.sort_values(by='RMSE/Accuracy', ascending=True))
 
             determine_feature_importance = True
-            y_pred, y_test, current_metric, feature_importance_df = model_creation(df, numeric_cols, classification_cols, target_column, regression_type,estimators, impurity, scaler_name, determine_feature_importance)
+            y_pred, y_test, current_metric = model_creation(df, numeric_cols, classification_cols, target_column, regression_type,estimators, impurity, scaler_name, determine_feature_importance)
 
             # Calculate differences: positive values mean the prediction is higher than the actual
             if regression_type == 'numeric':
@@ -250,6 +226,7 @@ def random_forest(df, numeric_cols, classification_cols, target_column, regressi
                 'Predicted': y_pred,
                 # .flatten(),
                 })
+                st.subheader(":blue[Actual vs. Predicted Values for Target Column:]")
                 st.dataframe(comparison_df)
             
             
