@@ -33,9 +33,8 @@ def load_url(url):
             df.columns = [f'Column{i+1}' for i in range(df.shape[1])]
 
         # Convert numeric columns to numeric data types
-        numeric_cols = df.columns[df.dtypes == object]
+        numeric_cols = df.columns[df.dtypes != object]
         df[numeric_cols] = df[numeric_cols].apply(pd.to_numeric) 
-
         return pre_analyse_df(df)   
             
     else:
@@ -60,7 +59,7 @@ def load_dataframe(uploaded_file):
                         df = pd.read_csv(io.StringIO(uploaded_file.read().decode()), delimiter=delimiter)       
 
                 # Convert numeric columns to numeric data types
-                numeric_cols = df.columns[df.dtypes == object]
+                numeric_cols = df.columns[df.dtypes != object]
                 df[numeric_cols] = df[numeric_cols].apply(pd.to_numeric) 
             
             except Exception as e:

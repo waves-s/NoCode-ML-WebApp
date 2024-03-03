@@ -128,16 +128,25 @@ def model_creation(df, numeric_cols, classification_cols, target_column, regress
     
     # Preprocessing for classification data
     # classification_transformer = Pipeline(steps=[('encoder', FunctionTransformer(label_encode_column, validate = False))])
-    classification_transformer = Pipeline(steps=[('encoder', OneHotEncoder(handle_unknown='ignore'))])
-
-    # Bundle preprocessing for numeric and categorical data
-    preprocessor = ColumnTransformer(transformers=[
+    categories = [df[col].unique() for col in classification_cols]
+    classification_transformer = OneHotEncoder(categories=categories, handle_unknown='ignore')
+    # preprocess = Pipeline([('encoder', classification_transformer)])
+    if classification_cols:
+        classification_transformer = Pipeline(steps=[('encoder', OneHotEncoder(handle_unknown='ignore'))])
+        # Bundle preprocessing for numeric and categorical data
+        preprocessor = ColumnTransformer(transformers=[
             ('num', numeric_transformer, numeric_cols),
             ('cat', classification_transformer, classification_cols)
         ])
+    else:
+        # Preprocessing for numeric data
+        preprocessor = ColumnTransformer(transformers=[
+            ('num', numeric_transformer, numeric_cols),])
+        
     
-    # # Fit preprocessing pipeline
-    # preprocessor.fit(X_train)
+    # Fit preprocessing pipeline
+    preprocessor.fit(X_train)
+
     
     # Bundle preprocessing and modeling code in a pipeline
     clf = Pipeline(steps=[('preprocessor', preprocessor),
