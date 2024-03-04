@@ -24,7 +24,7 @@ st.markdown(""":blue[Please be patient. Analyzing data > 5 columns and 1000 rows
 
 
 # File uploader allows user to add their own Excel
-uploaded_file = st.sidebar.file_uploader("Upload your input file", type=['csv','xls','xlsx'])
+uploaded_file = st.sidebar.file_uploader("Upload your input file (single sheet only)", type=['csv','xls','xlsx'])
 
 # Input field for URL
 url = st.sidebar.text_input("Or Provide Direct Download URL", value=None, placeholder="Enter URL and press Enter", key='url')
