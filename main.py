@@ -10,7 +10,7 @@ st.sidebar.title('No-Code Machine Learning Prediction Model for Non-Techies')
 
 st.subheader(":blue[How to Use:]")
 # Purpose
-st.markdown(""":blue[Purpose of this App:] The aim of this app is to help users identify if trend exist in data worth exploring without coding or machine learning knowledge/experience. It should be noted that this is a basic machine learning model. Further analysis is needed to address bias, overfitting, underfitting, and ensure dataset is balanced for classification problems.""")
+st.markdown(""":blue[Purpose of this App:] The aim of this app is to help users identify if trends exist in tabular numeric or categorical data worth exploring without coding or machine learning knowledge/experience. It should be noted that this is a basic machine learning model. Further analysis is needed to address bias, overfitting, underfitting, and ensure dataset is balanced for classification problems.""")
 
 
 # Step 1: Clean Data
