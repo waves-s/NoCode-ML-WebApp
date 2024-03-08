@@ -8,6 +8,27 @@ def generic_main():
     # Load HTML template
     load_html()
     
+    # Display the Buy Me a Coffee link   
+    st.markdown(
+        """
+        <div style="position: absolute; top: 10px; right: 10px;">
+            <a href="https://paypal.me/VibhaDhawan?country.x=CA&locale.x=en_US" target="_blank" style="text-decoration: none; color: #FFDD00; font-weight: bold; font-size: 16px;">
+                Buy Me a Coffee
+            </a>
+        </div>
+        """,
+        unsafe_allow_html=True
+    )
+        
+    st.markdown(
+    """
+    <div style="position: fixed; top: 10px; right: 10px;">
+        <a href="https://paypal.me/VibhaDhawan?country.x=CA&locale.x=en_US" target="_blank">Buy Me a Coffee</a>
+    </div>
+    """,
+    unsafe_allow_html=True
+)
+    
 
 
 def load_html():
