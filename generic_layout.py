@@ -8,12 +8,12 @@ def generic_main():
     # Load HTML template
     load_html()
     
-    # Display the Buy Me a Coffee link   
+    # Display the Provide Feedback, Comments link   
     st.markdown(
         """
         <div style="position: absolute; top: 10px; right: 10px;">
-            <a href="https://paypal.me/VibhaDhawan?country.x=CA&locale.x=en_US" target="_blank" style="text-decoration: none; color: #FFDD00; font-weight: bold; font-size: 16px;">
-                Buy Me a Coffee
+            <a href="https://www.linkedin.com/in/vibha-dhawan/" target="_blank" style="text-decoration: none; color: #FFDD00; font-weight: bold; font-size: 16px;">
+                Provide Feedback, Comments & Improvement Ideas
             </a>
         </div>
         """,
@@ -23,11 +23,13 @@ def generic_main():
     st.markdown(
     """
     <div style="position: fixed; top: 10px; right: 10px;">
-        <a href="https://paypal.me/VibhaDhawan?country.x=CA&locale.x=en_US" target="_blank">Buy Me a Coffee</a>
+        <a href="https://www.linkedin.com/in/vibha-dhawan/" target="_blank">Buy Me a Coffee</a>
     </div>
     """,
     unsafe_allow_html=True
-)
+    )
+    
+#     
     
 
 

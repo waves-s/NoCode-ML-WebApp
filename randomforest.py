@@ -6,7 +6,7 @@ import pandas as pd
 import numpy as np
 from sklearn.model_selection import train_test_split, GridSearchCV
 from sklearn.ensemble import RandomForestRegressor, RandomForestClassifier
-from sklearn.metrics import root_mean_squared_error, accuracy_score
+from sklearn.metrics import mean_squared_error, accuracy_score
 from sklearn.preprocessing import StandardScaler, OneHotEncoder, MinMaxScaler, LabelEncoder, FunctionTransformer
 from sklearn.compose import ColumnTransformer
 from sklearn.pipeline import Pipeline
@@ -33,7 +33,7 @@ def get_feature_names(column_transformer):
 
 def rmse_accuracy(regression_type, y_test, y_pred):
     if regression_type == 'numeric':
-        rmse = root_mean_squared_error(y_test, y_pred)
+        rmse = mean_squared_error(y_test, y_pred)
         return rmse
         
     elif regression_type == 'classification':
