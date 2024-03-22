@@ -3,10 +3,7 @@ import pandas as pd
 import matplotlib.pyplot as plt
 import seaborn as sns
 from deep_checks import pre_analyse_deep_checks, mixed_nulls
-import io
-from io import StringIO
-import csv
-import requests  
+
 
 def pre_analyse_df(df):
     
