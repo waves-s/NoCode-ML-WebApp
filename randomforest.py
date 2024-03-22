@@ -174,7 +174,7 @@ def model_creation(df, numeric_cols, classification_cols, target_column, regress
         if np.all(np.isnan(importances)):
             st.error("Are you sure your data set is clean? Could there be a column that completely relates to the target column 1 to 1? Please re-evaluate data to ensure it does not have errors and is meaninful")
         else:
-            st.subheader(":blue[Top 10 Feature Importances:]")
+            st.subheader(":blue[Top 10 Feature Importances for Model Prediction:]")
             st.dataframe(feature_importance_df.head(10))
             
     return y_pred, y_test, current_metric
@@ -192,52 +192,52 @@ def random_forest(df, numeric_cols, classification_cols, target_column, regressi
         wording = "Root Mean Squared Error" if regression_type == 'numeric' else "Accuracy"
         st.write(f":blue[1st Default {wording}: {current_metric}]")
             
-        if st.toggle("Run Optimization for Model", key="optimize_randomforest"):
-            best_parameters, df_params = random_forest_optimizer(df, numeric_cols, classification_cols, target_column, regression_type)
-            scaler_name = best_parameters['scaler']
-            estimators = best_parameters['n_estimators']
-            impurity = best_parameters['min_impurity']
-            optimized_rsme_accuracy = best_parameters['RMSE/Accuracy']
+        # if st.toggle("Run Optimization for Model", key="optimize_randomforest"):
+        best_parameters, df_params = random_forest_optimizer(df, numeric_cols, classification_cols, target_column, regression_type)
+        scaler_name = best_parameters['scaler']
+        estimators = best_parameters['n_estimators']
+        impurity = best_parameters['min_impurity']
+        optimized_rsme_accuracy = best_parameters['RMSE/Accuracy']
+        
+        if current_metric == optimized_rsme_accuracy:
+            st.success(f"Best {wording} Achieved with default parameters")
+        
+        elif abs(current_metric-optimized_rsme_accuracy)/current_metric < 0.05:
+            st.success(f"Best {wording} Achieved with default parameters, optimization does not add significant improvement.")      
+        
+        else:
+            st.write(f":blue[Best Optimized {wording}: {optimized_rsme_accuracy}]")
+            st.dataframe(df_params.sort_values(by='RMSE/Accuracy', ascending=True))
+
+        determine_feature_importance = True
+        y_pred, y_test, current_metric = model_creation(df, numeric_cols, classification_cols, target_column, regression_type,estimators, impurity, scaler_name, determine_feature_importance)
+
+        # Calculate differences: positive values mean the prediction is higher than the actual
+        if regression_type == 'numeric':
+            differences = y_pred - y_test
+            # .values.flatten()
             
-            if current_metric == optimized_rsme_accuracy:
-                st.success(f"Best {wording} Achieved with default parameters")
-            
-            elif abs(current_metric-optimized_rsme_accuracy)/current_metric < 0.05:
-                st.success(f"Best {wording} Achieved with default parameters, optimization does not add significant improvement.")      
-            
-            else:
-                st.write(f":blue[Best Optimized {wording}: {optimized_rsme_accuracy}]")
-                st.dataframe(df_params.sort_values(by='RMSE/Accuracy', ascending=True))
+            # Calculate the conservativeness metrics
+            conservative_predictions = (differences > 0).sum()
+            total_predictions = len(differences)
+            percentage_conservative = (conservative_predictions / total_predictions) * 100
+            st.write(f':blue[Percentage of Conservative Predictions (Prediction > Actual): {percentage_conservative:.2f}%]')
 
-            determine_feature_importance = True
-            y_pred, y_test, current_metric = model_creation(df, numeric_cols, classification_cols, target_column, regression_type,estimators, impurity, scaler_name, determine_feature_importance)
+            # Identify non-conservative (lower than actual) predictions and their percentage
+            non_conservative_predictions = (differences <= 0).sum()
+            percentage_non_conservative = (non_conservative_predictions / total_predictions) * 100
 
-            # Calculate differences: positive values mean the prediction is higher than the actual
-            if regression_type == 'numeric':
-                differences = y_pred - y_test
-                # .values.flatten()
-                
-                # Calculate the conservativeness metrics
-                conservative_predictions = (differences > 0).sum()
-                total_predictions = len(differences)
-                percentage_conservative = (conservative_predictions / total_predictions) * 100
-                st.write(f':blue[Percentage of Conservative Predictions (Prediction > Actual): {percentage_conservative:.2f}%]')
+            st.write(f':blue[Percentage of Non-Conservative Predictions (Prediction < Actual): {percentage_non_conservative:.2f}%]')
 
-                # Identify non-conservative (lower than actual) predictions and their percentage
-                non_conservative_predictions = (differences <= 0).sum()
-                percentage_non_conservative = (non_conservative_predictions / total_predictions) * 100
-
-                st.write(f':blue[Percentage of Non-Conservative Predictions (Prediction < Actual): {percentage_non_conservative:.2f}%]')
-
-                # Create a DataFrame for comparing actual vs. predicted values
-                comparison_df = pd.DataFrame({
-                'Actual': y_test,
-                # .values.flatten(),
-                'Predicted': y_pred,
-                # .flatten(),
-                })
-                st.subheader(":blue[Actual vs. Predicted Values for Target Column:]")
-                st.dataframe(comparison_df)
+            # Create a DataFrame for comparing actual vs. predicted values
+            comparison_df = pd.DataFrame({
+            'Actual': y_test,
+            # .values.flatten(),
+            'Predicted': y_pred,
+            # .flatten(),
+            })
+            st.subheader(":blue[Actual vs. Predicted Values for Target Column:]")
+            st.dataframe(comparison_df)
             
             
 

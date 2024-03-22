@@ -14,7 +14,7 @@ def pre_analyse_df(df):
     missing_rows_target = df.isnull().any(axis=1).sum()
     missing_columns = df.isnull().any(axis=0).sum()
     identical_data = (df.apply(lambda x: x.nunique()) == 1).sum()
-    st.success(f"Uploaded data has {num_rows} row(s) and {num_cols} column(s). A total of {missing_rows_target} row(s) have missing values in {missing_columns} column(s). {identical_data} column(s) have identical data across all row(s). Lets begin by analysing the data in detail to to improve model accuracy and dependability.")
+    st.success(f"Uploaded data has {num_rows} row(s) and {num_cols} column(s). A total of {missing_rows_target} row(s) have missing values in {missing_columns} column(s). {identical_data} column(s) have identical data across all row(s). Lets begin by analysing the data in detail to improve model accuracy and dependability.")
     st.header(":blue[Original Uploaded Data:]", divider='grey')
     st.dataframe(df)
     
