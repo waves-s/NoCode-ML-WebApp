@@ -11,17 +11,13 @@ def generic_main():
     # # st.header(html_code)
     # st.components.v1.html(html_code)
     st.markdown("""
-    <!-- Mouseflow tracking code -->
-    <script>
-        var _mfq = _mfq || [];
-        (function() {
-            var mf = document.createElement("script");
-            mf.type = "text/javascript"; mf.async = true;
-            mf.src = "//cdn.mouseflow.com/projects/59584ea9-74b4-4f12-b183-d2ca1af1a9f4.js"; 
-            document.getElementsByTagName("head")[0].appendChild(mf);
-        })();
-    </script>
-    <!-- End of Mouseflow tracking code -->
+                window._mfq = window._mfq || [];
+                (function() {
+                    var mf = document.createElement("script");
+                    mf.type = "text/javascript"; mf.defer = true;
+                    mf.src = "//cdn.mouseflow.com/projects/59584ea9-74b4-4f12-b183-d2ca1af1a9f4.js";
+                    document.getElementsByTagName("head")[0].appendChild(mf);
+                })();
     """, unsafe_allow_html=True)
 
 
