@@ -1,13 +1,14 @@
 import streamlit as st
-from hotjar import hotjar_tracking_code
+
 
 def generic_main():
     
     st.set_page_config(layout="wide")
     # st.write('<style>div.block-container{padding-top:1rem;}</style>', unsafe_allow_html=True)
     
-    # Embed Hotjar Tracking Code
-    st.components.v1.html(hotjar_tracking_code())
+    # Load HTML template
+    load_html()
+
 
     # Display the Provide Feedback, Comments link   
     st.markdown(
@@ -30,6 +31,10 @@ def generic_main():
     unsafe_allow_html=True
     )
     
+def load_html():
+    with open("hotjar_template.html", "r") as file:
+        html_code = file.read()
+    return html_code
     
 def generic_footer():
     
