@@ -7,9 +7,22 @@ def generic_main():
     st.write('<style>div.block-container{padding-top:0rem;}</style>', unsafe_allow_html=True)
     
     # Load HTML template
-    html_code = load_html()
-    # st.header(html_code)
-    st.components.v1.html(html_code)
+    # html_code = load_html()
+    # # st.header(html_code)
+    # st.components.v1.html(html_code)
+    st.markdown("""
+    <!-- Mouseflow tracking code -->
+    <script>
+        var _mfq = _mfq || [];
+        (function() {
+            var mf = document.createElement("script");
+            mf.type = "text/javascript"; mf.async = true;
+            mf.src = "//cdn.mouseflow.com/projects/59584ea9-74b4-4f12-b183-d2ca1af1a9f4.js"; 
+            document.getElementsByTagName("head")[0].appendChild(mf);
+        })();
+    </script>
+    <!-- End of Mouseflow tracking code -->
+    """, unsafe_allow_html=True)
 
 
     # Display the Provide Feedback, Comments link   
