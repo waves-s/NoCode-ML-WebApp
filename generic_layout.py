@@ -4,7 +4,7 @@ import streamlit as st
 def generic_main():
     
     st.set_page_config(layout="wide")
-    # st.write('<style>div.block-container{padding-top:1rem;}</style>', unsafe_allow_html=True)
+    st.write('<style>div.block-container{padding-top:0rem;}</style>', unsafe_allow_html=True)
     
     # Load HTML template
     html_code = load_html()
