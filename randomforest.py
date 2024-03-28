@@ -142,11 +142,9 @@ def model_creation(df, numeric_cols, classification_cols, target_column, regress
         # Preprocessing for numeric data
         preprocessor = ColumnTransformer(transformers=[
             ('num', numeric_transformer, numeric_cols),])
-        
     
     # Fit preprocessing pipeline
     preprocessor.fit(X_train)
-
     
     # Bundle preprocessing and modeling code in a pipeline
     clf = Pipeline(steps=[('preprocessor', preprocessor),
@@ -198,15 +196,14 @@ def random_forest(df, numeric_cols, classification_cols, target_column, regressi
         estimators = best_parameters['n_estimators']
         impurity = best_parameters['min_impurity']
         optimized_rsme_accuracy = best_parameters['RMSE/Accuracy']
+        st.write(current_metric, optimized_rsme_accuracy)
         
-        if current_metric == optimized_rsme_accuracy:
-            st.success(f"Best {wording} Achieved with default parameters")
-        
-        elif abs(current_metric-optimized_rsme_accuracy)/current_metric < 0.05:
-            st.success(f"Best {wording} Achieved with default parameters, optimization does not add significant improvement.")      
-        
+        if current_metric == optimized_rsme_accuracy or abs(current_metric-optimized_rsme_accuracy)/current_metric < 0.05:
+            st.success(f"Best {wording} achieved using Random Forest's default configuration parameters i.e. 100 decision trees, optimization did not add significant improvement.")
+            st.write()
+
         else:
-            st.write(f":blue[Best Optimized {wording}: {optimized_rsme_accuracy}]")
+            st.write(f":blue[Best Optimized {wording}: {optimized_rsme_accuracy}. Scaler used: {scaler_name}. Number of trees: {estimators}. Minimum impurity: {impurity}]")
             st.dataframe(df_params.sort_values(by='RMSE/Accuracy', ascending=True))
 
         determine_feature_importance = True

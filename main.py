@@ -6,7 +6,7 @@ from generic_layout import generic_main, generic_footer
 
 # Streamlit interface
 generic_main()
-st.sidebar.title('No-Code Machine Learning Prediction Model for Non-Techies')
+st.sidebar.title('No-Code Machine Learning Prediction Model')
 
 st.subheader(":blue[How to Use:]")
 # Purpose
@@ -24,11 +24,11 @@ st.markdown(""":blue[Please be patient. Analyzing data > 5 columns and 1000 rows
 
 
 # File uploader allows user to add their own Excel
-uploaded_file = st.sidebar.file_uploader("Upload your input file (single sheet only)", type=['csv','xls','xlsx'])
+uploaded_file = st.sidebar.file_uploader("**Upload your input file** (single sheet only)", type=['csv','xls','xlsx','txt','data'])
 
 # Input field for URL
-url = st.sidebar.text_input("Or Provide Direct Download URL", value=None, placeholder="Enter URL and press Enter", key='url')
-st.sidebar.write("Example url: https://archive.ics.uci.edu/ml/machine-learning-databases/iris/iris.data")
+url = st.sidebar.text_input("**Or Provide Direct Download URL** (see format in example url below)", value=None, placeholder="Enter URL and press Enter", key='url')
+st.sidebar.write("Example url: https://archive.ics.uci.edu/ml/machine-learning-databases/iris/iris.data \n\n Example csv data can be downloaded from: https://archive.ics.uci.edu/")
 if uploaded_file is not None:
     df,  numeric_cols, categorical_cols, target_column, regression_type = load_dataframe(uploaded_file)
     if df is not None: 
