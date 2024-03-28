@@ -7,7 +7,9 @@ def generic_main():
     # st.write('<style>div.block-container{padding-top:1rem;}</style>', unsafe_allow_html=True)
     
     # Load HTML template
-    load_html()
+    html_code = load_html()
+    # st.header(html_code)
+    st.components.v1.html(html_code)
 
 
     # Display the Provide Feedback, Comments link   
