@@ -154,22 +154,22 @@ def model_creation(df, numeric_cols, classification_cols, target_column, regress
     clf.fit(X_train, y_train)
     
     #upload X_test_unseen
-    df_unseen = pd.read_csv(r"C:\Users\vibha\Downloads\test.csv")
-    # Replace empty values in numeric columns with ''
-    df_unseen[numeric_cols] = df_unseen[numeric_cols].fillna(0)
+    # df_unseen = pd.read_csv(r"C:\Users\vibha\Downloads\test.csv")
+    # # Replace empty values in numeric columns with ''
+    # df_unseen[numeric_cols] = df_unseen[numeric_cols].fillna(0)
 
-    # Replace empty values in classification columns with 'NA'
-    df_unseen[classification_cols] = df_unseen[classification_cols].fillna('NA')
+    # # Replace empty values in classification columns with 'NA'
+    # df_unseen[classification_cols] = df_unseen[classification_cols].fillna('NA')
     
-    X_unseen = df_unseen[numeric_cols + classification_cols]  
+    # X_unseen = df_unseen[numeric_cols + classification_cols]  
 
     
 
     # Get predictions
     y_pred = clf.predict(X_test)
-    y_pred_test = clf.predict(X_unseen)
-    y_pred_test = y_pred_test.reshape((-1, 1))
-    df_unseen[target_column] = y_pred_test
+    # y_pred_test = clf.predict(X_unseen)
+    # y_pred_test = y_pred_test.reshape((-1, 1))
+    # df_unseen[target_column] = y_pred_test
     
     # Calculate RMSE/Accuracy
     current_metric = rmse_accuracy(regression_type, y_test, y_pred)

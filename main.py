@@ -28,7 +28,7 @@ uploaded_file = st.sidebar.file_uploader("**Upload your input file** (single she
 
 # Input field for URL
 url = st.sidebar.text_input("**Or Provide Direct Download URL** (see format in example url below)", value=None, placeholder="Enter URL and press Enter", key='url')
-st.sidebar.write("Example url: https://archive.ics.uci.edu/ml/machine-learning-databases/iris/iris.data \n\n Example csv data can be downloaded from: https://archive.ics.uci.edu/")
+st.sidebar.write("Example url: https://archive.ics.uci.edu/ml/machine-learning-databases/wine-quality/winequality-white.csv \n\n Example csv data can be downloaded from: https://archive.ics.uci.edu/")
 if uploaded_file is not None:
     df,  numeric_cols, categorical_cols, target_column, regression_type = load_dataframe(uploaded_file)
     if df is not None: 
