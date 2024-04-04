@@ -9,19 +9,21 @@ import ppscore as pps
 import plotly.graph_objects as go
 from deepchecks.tabular.datasets.classification.phishing import load_data
 
+
 n_to_show = 100000
 n_samples = 100000
 
 timeout = 120
 
-def create_dataset(df, catagorical_cols, target_column):
-    dataset = Dataset(df, cat_features=catagorical_cols, features=df.columns.difference(target_column).tolist(), label=target_column[0])
+def create_dataset(df, categorical_cols, target_column):
+    dataset = Dataset(df, cat_features=categorical_cols, features=df.columns.difference(target_column).tolist(), label=target_column[0])
     return dataset
 
-def pre_analyse_deep_checks(df, numeric_cols, catagorical_cols, other_dtype_cols, target_column, regression_type):
+def pre_analyse_deep_checks(df, numeric_cols, categorical_cols, other_dtype_cols, target_column, regression_type):
+    from dataframe import column_dtypes
 
     #Converting pandas dataframe to Deepchecks dataframe
-    dataset = create_dataset(df, catagorical_cols, target_column)
+    dataset = create_dataset(df, categorical_cols, target_column)
 
 # Checks completed: 
     # Mixednulls (in dataframe.py), deepchecks version created but not needed,
@@ -44,20 +46,22 @@ def pre_analyse_deep_checks(df, numeric_cols, catagorical_cols, other_dtype_cols
     mixed_nulls(dataset)
     
     #Check for String MisMatch USA vs Usa
-    string_mismatch(df, catagorical_cols)
+    string_mismatch(df, categorical_cols)
     
     #Check for String Length too long or too short than 'normal' length of column
     string_length(dataset)
     
     #Check for Features highly correlated with the Target column
     df, columns_edited_bool = feature_target_relation(dataset, df, target_column)
-    dataset = dataset = create_dataset(df, catagorical_cols, target_column)
+    numeric_cols, categorical_cols, other_dtype_cols = column_dtypes(df, target_column)
+    dataset = dataset = create_dataset(df, categorical_cols, target_column)
     if columns_edited_bool is True:
         recheck_feature_target_relation(dataset, df, target_column)
     
     #Check for Features highly correlated with another Feature (age vs year of birth)
     df = feature_feature_relation(dataset, df, target_column)
-    dataset = create_dataset(df, catagorical_cols, target_column)
+    numeric_cols, categorical_cols, other_dtype_cols = column_dtypes(df, target_column)
+    dataset = create_dataset(df, categorical_cols, target_column)
     
     #Check ColumnsInfo not using
     # st.write(ColumnsInfo().run(dataset).value)

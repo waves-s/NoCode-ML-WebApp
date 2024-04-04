@@ -221,14 +221,14 @@ def drop_other_dtype_columns(df):
     # Find columns with other dtypes
     target_column = []
     numeric_cols, categorical_cols, other_dtype_columns = column_dtypes(df, target_column)
-    # st.markdown("***:blue[Unaccepted Data Types]***", unsafe_allow_html=True)
+    # st.markdown("**:blue[Unaccepted Data Types]**", unsafe_allow_html=True)
     # Drop columns with text-numeric data
     if other_dtype_columns:
         
         df =  df.drop(other_dtype_columns, axis=1)
         st.success(f"**Unacceptabe Data Types:** Model can only analyse numeric-only or text-only data. \n\n {len(other_dtype_columns)} column(s) with other data type(s) have been removed from the assessment: **{other_dtype_columns}**")
     else:
-        st.success("Unacceptabe Data Types: No columns with other data types found.")
+        st.success("**Unacceptabe Data Types:** No columns with other data types found.")
     return df
     
 
@@ -294,12 +294,16 @@ def missing_data(df, numeric_cols, categorical_cols, other_dtype_cols, used_cols
                                                     default=high_missing_cols, label_visibility="collapsed")
         
         option = st.radio("Choose an option to handle missing values:",
-        ("Delete rows", "Delete columns", "Replace with '0' (may affect analysis)"), index=None,label_visibility="collapsed", horizontal=True)
+        ("Delete rows", "Delete columns", "Replace with '0' for numeric columns and 'NA' for categorical columns (may affect analysis)"), index=None,label_visibility="collapsed", horizontal=True)
                   
-        if option == "Replace with '0' (may affect analysis)":
+        if option == "Replace with '0' for numeric columns and 'NA' for categorical columns (may affect analysis)":
             for col in high_missing_cols:
-                df[col].fillna(0, inplace=True)
-            st.success(f"Missing cells replaced with '0'")
+                if col in numeric_cols:
+                    df[col].fillna(0, inplace=True)
+                else:
+                    df[col].fillna('NA', inplace=True)
+                # df[col].fillna(0, inplace=True)
+            st.success(f"Missing cells replaced with '0' or 'NA'")
                 
         elif option == "Delete rows":
             df.dropna(subset=high_missing_cols, inplace=True)

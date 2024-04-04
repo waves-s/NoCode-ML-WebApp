@@ -152,9 +152,24 @@ def model_creation(df, numeric_cols, classification_cols, target_column, regress
         
     # Preprocessing of training data, fit model 
     clf.fit(X_train, y_train)
+    
+    #upload X_test_unseen
+    df_unseen = pd.read_csv(r"C:\Users\vibha\Downloads\test.csv")
+    # Replace empty values in numeric columns with ''
+    df_unseen[numeric_cols] = df_unseen[numeric_cols].fillna(0)
+
+    # Replace empty values in classification columns with 'NA'
+    df_unseen[classification_cols] = df_unseen[classification_cols].fillna('NA')
+    
+    X_unseen = df_unseen[numeric_cols + classification_cols]  
+
+    
 
     # Get predictions
     y_pred = clf.predict(X_test)
+    y_pred_test = clf.predict(X_unseen)
+    y_pred_test = y_pred_test.reshape((-1, 1))
+    df_unseen[target_column] = y_pred_test
     
     # Calculate RMSE/Accuracy
     current_metric = rmse_accuracy(regression_type, y_test, y_pred)
@@ -174,6 +189,8 @@ def model_creation(df, numeric_cols, classification_cols, target_column, regress
         else:
             st.subheader(":blue[Top 10 Feature Importances for Model Prediction:]")
             st.dataframe(feature_importance_df.head(10))
+            # st.write(df_unseen)
+            # df_unseen.to_csv(r"C:\Users\vibha\Downloads\test_output.csv")
             
     return y_pred, y_test, current_metric
     
@@ -196,11 +213,11 @@ def random_forest(df, numeric_cols, classification_cols, target_column, regressi
         estimators = best_parameters['n_estimators']
         impurity = best_parameters['min_impurity']
         optimized_rsme_accuracy = best_parameters['RMSE/Accuracy']
-        st.write(current_metric, optimized_rsme_accuracy)
+        # st.write(current_metric, optimized_rsme_accuracy)
         
         if current_metric == optimized_rsme_accuracy or abs(current_metric-optimized_rsme_accuracy)/current_metric < 0.05:
             st.success(f"Best {wording} achieved using Random Forest's default configuration parameters i.e. 100 decision trees, optimization did not add significant improvement.")
-            st.write()
+
 
         else:
             st.write(f":blue[Best Optimized {wording}: {optimized_rsme_accuracy}. Scaler used: {scaler_name}. Number of trees: {estimators}. Minimum impurity: {impurity}]")
