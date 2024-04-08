@@ -4,6 +4,7 @@ from upload_data import load_dataframe, load_url
 from generic_layout import generic_main, generic_footer
 
 
+
 # Streamlit interface
 generic_main()
 st.sidebar.title('No-Code Machine Learning Prediction Model')
@@ -18,6 +19,11 @@ st.markdown(""" :blue[Clean Data:] Remove errors, duplicates, and unnecessary co
 
 # Step 2: Upload CSV
 st.markdown(""":blue[Upload Data:] Use the file/url uploader on sidebar. Select the target (prediction) column. """)
+
+# Video
+video_url = "https://www.youtube.com/watch?v=IWi5zzL1V1E"
+st.markdown(f""":blue[Video Tutorial: {video_url} ]""")
+# st.video(video_url)
 
 # Patience
 st.markdown(""":blue[Please be patient. Analyzing data > 5 columns and 1000 rows can take > 5 mins... We are working on improving this.]""")

@@ -1,25 +1,35 @@
 import streamlit as st
-
+from streamlit_javascript import st_javascript
 
 def generic_main():
     
     st.set_page_config(layout="wide")
     st.write('<style>div.block-container{padding-top:0rem;}</style>', unsafe_allow_html=True)
-    
-    # Load HTML template
-    # html_code = load_html()
-    # # st.header(html_code)
-    # st.components.v1.html(html_code)
-    st.markdown("""
-                <script>
+    js_code = """
                 window._mfq = window._mfq || [];
                 (function() {
                     var mf = document.createElement("script");
                     mf.type = "text/javascript"; mf.defer = true;
                     mf.src = "//cdn.mouseflow.com/projects/59584ea9-74b4-4f12-b183-d2ca1af1a9f4.js";
                     document.getElementsByTagName("head")[0].appendChild(mf);
-                })(); </script>
-    """, unsafe_allow_html=True)
+                })(); """
+    info = st_javascript(js_code)
+    # st.write(info)
+    st.markdown(f"""<script> {info} </script>""", unsafe_allow_html=True)
+    # Load HTML template
+    # html_code = load_html()
+    # # st.header(html_code)
+    # st.components.v1.html(html_code)
+    # st.markdown("""
+    #             <script>
+    #             window._mfq = window._mfq || [];
+    #             (function() {
+    #                 var mf = document.createElement("script");
+    #                 mf.type = "text/javascript"; mf.defer = true;
+    #                 mf.src = "//cdn.mouseflow.com/projects/59584ea9-74b4-4f12-b183-d2ca1af1a9f4.js";
+    #                 document.getElementsByTagName("head")[0].appendChild(mf);
+    #             })(); </script>
+    # """, unsafe_allow_html=True)
 
 
     # Display the Provide Feedback, Comments link   
