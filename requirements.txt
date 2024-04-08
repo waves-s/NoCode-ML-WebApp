@@ -8,4 +8,5 @@ plotly==5.19.0
 ppscore==1.3.0
 json5==0.9.22
 streamlit==1.31.1
+streamlit-javascript==0.1.5
 numpy==1.26.4
