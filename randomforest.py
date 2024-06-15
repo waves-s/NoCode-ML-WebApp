@@ -13,6 +13,7 @@ from sklearn.pipeline import Pipeline
 import matplotlib.pyplot as plt
 import seaborn as sns
 from sklearn.impute import SimpleImputer
+from upload_data import load_dataframe
 
 def get_feature_names(column_transformer):
     """Get feature names from column transformer"""
@@ -33,7 +34,7 @@ def get_feature_names(column_transformer):
 
 def rmse_accuracy(regression_type, y_test, y_pred):
     if regression_type == 'numeric':
-        rmse = mean_squared_error(y_test, y_pred)
+        rmse = mean_squared_error(y_test, y_pred, squared=False)
         return rmse
         
     elif regression_type == 'classification':
@@ -71,7 +72,7 @@ def random_forest_optimizer(df, numeric_cols, classification_cols, target_column
             
             for estimators in n_estimators:
                 for impurity in min_impurity:
-                    y_pred, y_test, current_metric = model_creation(df, numeric_cols, classification_cols, target_column, regression_type, estimators, impurity, scaler, determine_feature_importance) 
+                    y_pred, y_test, current_metric, model_optimized = model_creation(df, numeric_cols, classification_cols, target_column, regression_type, estimators, impurity, scaler, determine_feature_importance) 
                 
                     if regression_type == 'classification':
                         if current_metric >= best_rmse:
@@ -97,7 +98,7 @@ def random_forest_optimizer(df, numeric_cols, classification_cols, target_column
         # Convert the dictionary to a DataFrame
         df_params = pd.DataFrame.from_dict(all_parameters, orient='index')
         df_params.set_index('RMSE/Accuracy', inplace=True)  # Reset the index to turn it into a column
-        return best_parameter, df_params
+        return best_parameter, df_params, model_optimized
     
     except Exception as e:
         st.error(f"An error occurred: {e}")
@@ -142,6 +143,7 @@ def model_creation(df, numeric_cols, classification_cols, target_column, regress
         # Preprocessing for numeric data
         preprocessor = ColumnTransformer(transformers=[
             ('num', numeric_transformer, numeric_cols),])
+        
     
     # Fit preprocessing pipeline
     preprocessor.fit(X_train)
@@ -152,24 +154,9 @@ def model_creation(df, numeric_cols, classification_cols, target_column, regress
         
     # Preprocessing of training data, fit model 
     clf.fit(X_train, y_train)
-    
-    #upload X_test_unseen
-    # df_unseen = pd.read_csv(r"C:\Users\vibha\Downloads\test.csv")
-    # # Replace empty values in numeric columns with ''
-    # df_unseen[numeric_cols] = df_unseen[numeric_cols].fillna(0)
-
-    # # Replace empty values in classification columns with 'NA'
-    # df_unseen[classification_cols] = df_unseen[classification_cols].fillna('NA')
-    
-    # X_unseen = df_unseen[numeric_cols + classification_cols]  
-
-    
 
     # Get predictions
     y_pred = clf.predict(X_test)
-    # y_pred_test = clf.predict(X_unseen)
-    # y_pred_test = y_pred_test.reshape((-1, 1))
-    # df_unseen[target_column] = y_pred_test
     
     # Calculate RMSE/Accuracy
     current_metric = rmse_accuracy(regression_type, y_test, y_pred)
@@ -187,75 +174,90 @@ def model_creation(df, numeric_cols, classification_cols, target_column, regress
         if np.all(np.isnan(importances)):
             st.error("Are you sure your data set is clean? Could there be a column that completely relates to the target column 1 to 1? Please re-evaluate data to ensure it does not have errors and is meaninful")
         else:
-            st.subheader(":blue[Top 10 Feature Importances for Model Prediction:]")
+            st.subheader(":blue[Top 10 Feature Importances:]")
             st.dataframe(feature_importance_df.head(10))
-            # st.write(df_unseen)
-            # df_unseen.to_csv(r"C:\Users\vibha\Downloads\test_output.csv")
             
-    return y_pred, y_test, current_metric
+    return y_pred, y_test, current_metric, clf
     
       
 def random_forest(df, numeric_cols, classification_cols, target_column, regression_type):
-
+    #Note that the df here = df_input_model not df_original
     try:
         #Run RandomForest with Default parameters
         scaler = StandardScaler()
         determine_feature_importance = False
-        y_pred, y_test, current_metric = model_creation(df, numeric_cols, classification_cols, target_column, regression_type, 100, None,scaler, determine_feature_importance) 
+        y_pred, y_test, current_metric, model = model_creation(df, numeric_cols, classification_cols, target_column, regression_type, 100, None,scaler, determine_feature_importance) 
 
         st.subheader(":blue[Random Forest Results:]", divider='grey')
         wording = "Root Mean Squared Error" if regression_type == 'numeric' else "Accuracy"
         st.write(f":blue[1st Default {wording}: {current_metric}]")
-            
-        # if st.toggle("Run Optimization for Model", key="optimize_randomforest"):
-        best_parameters, df_params = random_forest_optimizer(df, numeric_cols, classification_cols, target_column, regression_type)
-        scaler_name = best_parameters['scaler']
-        estimators = best_parameters['n_estimators']
-        impurity = best_parameters['min_impurity']
-        optimized_rsme_accuracy = best_parameters['RMSE/Accuracy']
-        # st.write(current_metric, optimized_rsme_accuracy)
         
-        if current_metric == optimized_rsme_accuracy or abs(current_metric-optimized_rsme_accuracy)/current_metric < 0.05:
-            st.success(f"Best {wording} achieved using Random Forest's default configuration parameters i.e. 100 decision trees, optimization did not add significant improvement.")
+        #Run RandomForest Optimizer
+        if st.toggle("Run Optimization for Model", key="optimize_randomforest"):
+            best_parameters, df_params, model_optimized  = random_forest_optimizer(df, numeric_cols, classification_cols, target_column, regression_type)
+            scaler_name = best_parameters['scaler']
+            estimators = best_parameters['n_estimators']
+            impurity = best_parameters['min_impurity']
+            optimized_rsme_accuracy = best_parameters['RMSE/Accuracy']
+            average_target = np.mean(df[target_column])
 
-
-        else:
-            st.write(f":blue[Best Optimized {wording}: {optimized_rsme_accuracy}. Scaler used: {scaler_name}. Number of trees: {estimators}. Minimum impurity: {impurity}]")
-            st.dataframe(df_params.sort_values(by='RMSE/Accuracy', ascending=True))
-
-        determine_feature_importance = True
-        y_pred, y_test, current_metric = model_creation(df, numeric_cols, classification_cols, target_column, regression_type,estimators, impurity, scaler_name, determine_feature_importance)
-
-        # Calculate differences: positive values mean the prediction is higher than the actual
-        if regression_type == 'numeric':
-            differences = y_pred - y_test
-            # .values.flatten()
+            if current_metric == optimized_rsme_accuracy:
+                st.success(f"Best {wording} Achieved with default parameters")
             
-            # Calculate the conservativeness metrics
-            conservative_predictions = (differences > 0).sum()
-            total_predictions = len(differences)
-            percentage_conservative = (conservative_predictions / total_predictions) * 100
-            st.write(f':blue[Percentage of Conservative Predictions (Prediction > Actual): {percentage_conservative:.2f}%]')
-
-            # Identify non-conservative (lower than actual) predictions and their percentage
-            non_conservative_predictions = (differences <= 0).sum()
-            percentage_non_conservative = (non_conservative_predictions / total_predictions) * 100
-
-            st.write(f':blue[Percentage of Non-Conservative Predictions (Prediction < Actual): {percentage_non_conservative:.2f}%]')
-
-            # Create a DataFrame for comparing actual vs. predicted values
-            comparison_df = pd.DataFrame({
-            'Actual': y_test,
-            # .values.flatten(),
-            'Predicted': y_pred,
-            # .flatten(),
-            })
-            st.subheader(":blue[Actual vs. Predicted Values for Target Column:]")
-            st.dataframe(comparison_df)
+            elif abs(current_metric-optimized_rsme_accuracy)/current_metric < 0.05:
+                st.success(f"Best {wording} Achieved with default parameters, optimization does not add significant improvement.")      
             
-            
+            else:
+                st.write(f":blue[Best Optimized {wording}: {optimized_rsme_accuracy}]")
+                st.dataframe(df_params.sort_values(by='RMSE/Accuracy', ascending=True))
 
-    
+            determine_feature_importance = True
+            y_pred, y_test, current_metric, model_final = model_creation(df, numeric_cols, classification_cols, target_column, regression_type,estimators, impurity, scaler_name, determine_feature_importance)
+
+            # Calculate differences: positive values mean the prediction is higher than the actual
+            if regression_type == 'numeric':
+                differences = y_pred - y_test
+                # .values.flatten()
+                
+                # Calculate the conservativeness metrics
+                conservative_predictions = (differences > 0).sum()
+                total_predictions = len(differences)
+                percentage_conservative = (conservative_predictions / total_predictions) * 100
+                st.write(f':blue[Percentage of Conservative Predictions (Prediction > Actual): {percentage_conservative:.2f}%]')
+
+                # Identify non-conservative (lower than actual) predictions and their percentage
+                non_conservative_predictions = (differences <= 0).sum()
+                percentage_non_conservative = (non_conservative_predictions / total_predictions) * 100
+
+                st.write(f':blue[Percentage of Non-Conservative Predictions (Prediction < Actual): {percentage_non_conservative:.2f}%]')
+
+                # Create a DataFrame for comparing actual vs. predicted values
+                comparison_df = pd.DataFrame({
+                'Actual': y_test,
+                # .values.flatten(),
+                'Predicted': y_pred,
+                # .flatten(),
+                })
+                st.subheader(":blue[Actual vs. Predicted Values for Target Column:]")
+                st.dataframe(comparison_df)
+            
+                #Input Prediction data
+                st.subheader(":blue[Upload File for Predictions]", divider='grey')
+                predictions_file = st.file_uploader("Predictions file should have the same column & file format as original data. Missing values or NaN values will result in an error.", type=["csv"])
+                if predictions_file is not None:
+                    predictions_df_orig = load_dataframe(predictions_file)
+                    predictions_df = predictions_df_orig[numeric_cols + classification_cols]
+                    
+                    # Make predictions using best model determined above
+                    if all(col in predictions_df.columns for col in numeric_cols + classification_cols):
+                        x2_pred = predictions_df[numeric_cols + classification_cols]
+                        y2_pred = model_final.predict(x2_pred)
+                        predictions_df['Predicted'] = y2_pred
+                        st.subheader(":blue[Predictions on New Data]")
+                        st.dataframe(predictions_df)
+                    else:
+                        st.error("Uploaded file has missing data - ensure that this file matches original data format exactly")       
+
     except Exception as e:
         st.write(e)
         st.error(f"An error occurred: {e}")

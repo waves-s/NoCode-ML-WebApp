@@ -3,7 +3,10 @@ import pandas as pd
 import matplotlib.pyplot as plt
 import seaborn as sns
 from deep_checks import pre_analyse_deep_checks, mixed_nulls
-
+import io
+from io import StringIO
+import csv
+import requests  
 
 def pre_analyse_df(df):
     
@@ -11,17 +14,14 @@ def pre_analyse_df(df):
     st.sidebar.success(f"Original Data: {num_rows} rows and {num_cols} columns")
 
     st.header(":blue[Original Uploaded Data Summary:]", divider='grey')
-    
     missing_rows_target = df.isnull().any(axis=1).sum()
     missing_columns = df.isnull().any(axis=0).sum()
     identical_data = (df.apply(lambda x: x.nunique()) == 1).sum()
-    st.success(f"Uploaded data has {num_rows} row(s) and {num_cols} column(s). A total of {missing_rows_target} row(s) have missing values in {missing_columns} column(s). {identical_data} column(s) have identical data across all row(s). Lets look at the data in detail.")
     
-    # st.header(":blue[Original Uploaded Data:]", divider='grey')
-    with st.expander(":blue[Expand to see original uploaded data]", expanded=False):
-        st.dataframe(df)
+    st.success(f"Uploaded data has {num_rows} row(s) and {num_cols} column(s). A total of {missing_rows_target} row(s) have missing values in {missing_columns} column(s). {identical_data} column(s) have identical data across all row(s). Lets begin by analysing the data in detail to to improve model accuracy and dependability.")
     
-    st.subheader(":blue[Step 1: Basic Data Cleanup:]", divider='grey')
+    st.header(":blue[Original Uploaded Data:]", divider='grey')
+    st.dataframe(df)
     
     #Delete other dtype columns
     df = drop_other_dtype_columns(df)
@@ -33,7 +33,7 @@ def pre_analyse_df(df):
     df = drop_constant_value_columns(df)
     
     # Determine target column and determine if its numeric or categorical
-    st.subheader(":blue[Step 2: Select Target Column i.e. value to be predicted by the analysis:]", divider='grey')
+    st.subheader(":blue[Step 4: Select Target Column i.e. value to be predicted by the analysis:]", divider='grey')
     target_column = [st.selectbox("Select the value to be predicted by the ML model:", index= None, options= df.columns, placeholder="Choose a target column (required)", label_visibility="collapsed")]
     target_type = [st.selectbox("Select the regression type to be predicted by the ML model:", index= None, options=['Continuous','Categories'], placeholder="Is the target column 'continuous' e.g. age, temperature or discrete 'categories' e.g. types of flowers, 0 or 1 (True or False) etc", label_visibility="collapsed")]
     
@@ -42,7 +42,7 @@ def pre_analyse_df(df):
         if df[target_column[0]].dtype in ['object'] and target_type[0] == 'Continuous':
             st.error("Target column is non-numeric and can not be assessed as continuous. Please select categorical.")
             return None, None, None, None, None
- 
+
         else:
             
             if target_type[0] == 'Continuous':
@@ -60,7 +60,6 @@ def data_clean_up(df, target_column, regression_type):
     numeric_cols, categorical_cols, other_dtype_cols = column_dtypes(df, target_column)
     # pre_analyse_deep_checks(df, numeric_cols, categorical_cols, target_column, regression_type)
     
-    st.subheader(":blue[Step 3: Data Review + Filterings:]", divider='grey')
     #Check to see if target_column has missing values
     df = target_missing_values(df, target_column,regression_type)  
     
@@ -80,17 +79,19 @@ def data_clean_up(df, target_column, regression_type):
     
 
     # Drop any user identified columns
-    st.subheader(":back[Remove Additional Unrelated Column(s) (optional):]")
-    st.error("Removing columns not related to the target column can improve accuracy. Examples of noise: duplicate columns, identification columns not related to value to be predicted, or non-independant columns. Select below to remove:")
- 
-    drop_cols = st.multiselect("Select columns to drop by the ML model:", options= df.columns.difference(tuple(used_cols)), placeholder="Choose column(s) to remove from analysis (optional)", label_visibility="collapsed")
+    st.subheader(":blue[Step 9: Remove Additional Unrelated Columns:]", divider='grey')
+    st.warning("Removing columns not related to the target column (optional) can improve accuracy. Examples of noise: duplicate columns, identification columns not related to value to be predicted, or non-independant columns. Select below to remove:")
+    if st.toggle("Do not Remove any Additional Columns", key = 'keep_all_columns'):
+        pass
+    else:  
+        drop_cols = st.multiselect("Select columns to drop by the ML model:", options= df.columns.difference(tuple(used_cols)), placeholder="Choose column(s) to remove from analysis (optional)", label_visibility="collapsed")
 
-    if drop_cols:
-        df, numeric_cols, categorical_cols, other_dtype_cols = drop_columns(df, drop_cols, target_column)
-        st.success(f"{len(drop_cols)} Column(s) dropped successfully.")
+        if drop_cols:
+            df, numeric_cols, categorical_cols, other_dtype_cols = drop_columns(df, drop_cols, target_column)
+            st.success(f"{len(drop_cols)} Column(s) dropped successfully.")
     
-    st.subheader(":blue[Step 4: Data Review for Model Accuracy:]", divider='grey')
     df = pre_analyse_deep_checks(df,numeric_cols, categorical_cols, other_dtype_cols, target_column, regression_type)
+    
     numeric_cols, categorical_cols, other_dtype_cols = column_dtypes(df, target_column)
     
     #Data is ready to send to machine learning model
@@ -100,14 +101,13 @@ def data_clean_up(df, target_column, regression_type):
     st.dataframe(df)
 
     return df, numeric_cols, categorical_cols, target_column, regression_type
-
     
     
 def target_missing_values(df, target_column, regression_type):
     
     total_rows, total_columns = df.shape
     missing_rows_target = df[target_column[0]].isnull().sum()
-    st.subheader(":black[Missing Data in Target Column:]")   
+    st.subheader(":blue[Step 5: Missing Data in Target Column:]", divider='grey')   
     
     if missing_rows_target:
         
@@ -160,37 +160,39 @@ def column_dtypes(df, target_column):
 
     numeric_cols = df.select_dtypes(include=['int8', 'int16','int32','int64', 'float16', 'float32','float64','uint8','uint16','uint32','uint64']).columns.difference(target_column).tolist()
     categorical_cols = df.select_dtypes(include=['object', 'category','bool','boolean']).columns.difference(target_column).tolist() 
-    #Datetime columns are currently other_dtype and not included in analysis
     other_dtype_cols = df.columns.difference(numeric_cols+categorical_cols+target_column).tolist()
     return numeric_cols, categorical_cols, other_dtype_cols   
 
     
 def filter_columns(df, target_column):
 
-    st.subheader(":black[Filter Data (optional):]")
-    st.error("Filter data to analyze a subset of the original dataset.")
-    # if st.toggle("Do Not Filter Any Data", key="do_not_filter_data"):
-    #     return df, None
-    # else:
-    filter_cols = st.multiselect("Select columns to filter", options=df.columns.difference(target_column), placeholder="Choose column(s) to filter for the analysis",label_visibility="collapsed")
-
-    # Filtering options based on selected columns
-    if filter_cols is not None:
-        for idx, col in enumerate(filter_cols):
-            st.write(f"Filtering for '**{col}**':")
-            unique_values = df[col].dropna().unique()
-            # Use the column name and index to create a unique key for each widget
-            selected_value = st.selectbox(f"Select value for {col}", options=unique_values, key=f"{col}_value_{idx}")
-            condition = st.selectbox("Condition", options=["==", ">", "<","<>"], key=f"{col}_condition_{idx}")
-            
-            # Apply filtering based on user selection
-            if condition == "==":
-                df = df[df[col] == selected_value]
-            elif condition == ">":
-                df = df[df[col] > selected_value]
-            elif condition == "<":
-                df = df[df[col] < selected_value]
-    return df, filter_cols
+    st.subheader(":blue[Step 6: Filter Data:]", divider='grey')
+    st.warning("Would you like to filter the data for the analysis? (optional)")
+    if st.toggle("Do Not Filter Any Data", key="do_not_filter_data"):
+        return df, None
+    else:
+        filter_cols = st.multiselect("Select columns to filter", options=df.columns.difference(target_column), placeholder="Choose column(s) to filter for the analysis (optional)",label_visibility="collapsed")
+   
+        # Filtering options based on selected columns
+        if filter_cols is not None:
+            for idx, col in enumerate(filter_cols):
+                st.write(f"Filtering for '**{col}**':")
+                unique_values = df[col].dropna().unique()
+                # Use the column name and index to create a unique key for each widget
+                selected_value = st.selectbox(f"Select value for {col}", options=unique_values, key=f"{col}_value_{idx}")
+                condition = st.selectbox("Condition", options=["==", ">", "<","<>"], key=f"{col}_condition_{idx}")
+                
+                # Apply filtering based on user selection
+                if condition == "==":
+                    df = df[df[col] == selected_value]
+                elif condition == ">":
+                    df = df[df[col] > selected_value]
+                elif condition == "<":
+                    df = df[df[col] < selected_value]
+                elif condition == "<>":
+                    df = df[df[col] != selected_value]
+                
+        return df, filter_cols
  
     
 def drop_columns(df, drop_cols, target_column):
@@ -205,14 +207,14 @@ def drop_columns(df, drop_cols, target_column):
 def drop_text_numeric_columns(df):
     # Find columns with text-numeric data
     text_numeric_cols = [col for col in df.columns if df[col].dtype == 'object' and df[col].astype(str).str.contains(r'^-?\d*\.?\d+$').any()]
-    # st.subheader(":blue[Step 2: Text-Numeric Columns]", divider='grey')
+    st.subheader(":blue[Step 2: Text-Numeric Columns]", divider='grey')
     # Drop columns with text-numeric data
     if text_numeric_cols:
         
         df =  df.drop(text_numeric_cols, axis=1)
-        st.success(f"**Text-Numeric Columns:** Model can only analyse numeric-only or text-only data. \n\n {len(text_numeric_cols)} column(s) with text-numeric data have been deleted: **{text_numeric_cols}**")
+        st.success(f"Model can only analyse numeric-only or text-only data. '**{len(text_numeric_cols)}**' column(s) with text-numeric data has been deleted: **{text_numeric_cols}**")
     else:
-        st.success("**Text-Numeric Columns:** No columns with text-numeric data found.")
+        st.success("No columns with text-numeric data found.")
     return df
 
 
@@ -221,27 +223,27 @@ def drop_other_dtype_columns(df):
     # Find columns with other dtypes
     target_column = []
     numeric_cols, categorical_cols, other_dtype_columns = column_dtypes(df, target_column)
-    # st.markdown("**:blue[Unaccepted Data Types]**", unsafe_allow_html=True)
+    st.subheader(":blue[Step 1: Unaccepted Data Types]", divider='grey')
     # Drop columns with text-numeric data
     if other_dtype_columns:
         
         df =  df.drop(other_dtype_columns, axis=1)
-        st.success(f"**Unacceptabe Data Types:** Model can only analyse numeric-only or text-only data. \n\n {len(other_dtype_columns)} column(s) with other data type(s) have been removed from the assessment: **{other_dtype_columns}**")
+        st.success(f"Model can only analyise numeric-only or text-only data. '**{len(other_dtype_columns)}**' column(s) with other data types have been deleted: **{other_dtype_columns}**")
     else:
-        st.success("**Unacceptabe Data Types:** No columns with other data types found.")
+        st.success("No columns with other data types found.")
     return df
     
 
 def drop_constant_value_columns(df):
     constant_value_cols = [col for col in df.columns if df[col].nunique() == 1]
-    # st.subheader(":blue[Step 3: Removing Constant Value Columns]", divider='grey')
+    st.subheader(":blue[Step 3: Constant Value Columns]", divider='grey')
     # Drop columns with constant values
     if constant_value_cols:
         
         df = df.drop(constant_value_cols, axis=1)
-        st.success(f"**Constant Value:** Columns with only 1 unique value does not contribute to the analysis.\n\n {len(constant_value_cols)} column(s) with constant values have been removed from the assessment: **{constant_value_cols}**")
+        st.success(f"Columns with the same value for all rows do not contribute to the analysis. '**{len(constant_value_cols)}**' column(s) with constant values has been deleted: **{constant_value_cols}**")
     else:
-        st.success("**Constant Value:** No columns with constant values found.")
+        st.success("No columns with constant values found.")
 
     return df
 
@@ -250,12 +252,12 @@ def high_cardinality(df, numeric_cols, categorical_cols, other_dtype_cols, used_
     num_rows, num_cols = df.shape
     high_cardinality_threshold = max(50,round(num_rows/1000)*10)
     high_cardinality_cols = [col for col in categorical_cols if df[col].nunique() > high_cardinality_threshold and col not in used_cols]
-    st.subheader(f":black[Columns with >{high_cardinality_threshold} Unique Categories:]")
+    st.subheader(f":blue[Step 7: Columns with >{high_cardinality_threshold} Unique Categories:]", divider='grey')
     
     # Ask the user if these high cardinality columns should be dropped
     if high_cardinality_cols:
         
-        st.error("Columns with large # of unique categories (may) dilute performace and are excluded by default. To retain them all, select the toggle button; to retain only a few column(s), deselect them from the list below:")
+        st.warning("Columns with large # of unique categories may dilute performace and are excluded by default. To retain them, deselect them from the list below:")
         if st.toggle("Keep All Large Unique Category Column(s)", key="keep_all_high_cardinality_cols"):
             pass
         else:
@@ -274,7 +276,7 @@ def missing_data(df, numeric_cols, categorical_cols, other_dtype_cols, used_cols
     
     total_rows, total_columns = df.shape
     high_missing_cols = [col for col in df.columns.difference(used_cols) if df[col].isnull().mean() > 0 or df[col].isnull().mean == 1 and col not in used_cols]
-    st.subheader(f":black[Additional Column(s) with Missing Data:]")
+    st.subheader(f":blue[Step 8: Additional Columns with Missing Data:]", divider='grey')
     
     
     # Ask the user if these columns should be dropped
@@ -287,23 +289,19 @@ def missing_data(df, numeric_cols, categorical_cols, other_dtype_cols, used_cols
         rows_lower_than_columns = 'rows' if percent_missing_cols >= percent_missing_rows else 'columns'
         
         
-        st.error(f"The following **'{num_missing_cols}'** columns have missing data affecting **'{num_missing_rows}'** rows. Missing values affect predictive accuracy; it is recommended {rows_lower_than_columns} be removed (default). If you prefer another option, please select below:") 
+        st.warning(f"The following **'{num_missing_cols}'** columns have missing data affecting **'{num_missing_rows}'** rows. Missing values affect predictive accuracy; it is recommended {rows_lower_than_columns} be removed (default). If you prefer another option, please select below:") 
         
         drop_high_missing_cols = st.multiselect("Missing data columns",
                                                     options=high_missing_cols,
                                                     default=high_missing_cols, label_visibility="collapsed")
         
         option = st.radio("Choose an option to handle missing values:",
-        ("Delete rows", "Delete columns", "Replace with '0' for numeric columns and 'NA' for categorical columns (may affect analysis)"), index=None,label_visibility="collapsed", horizontal=True)
+        ("Delete rows", "Delete columns", "Replace with '0' (may affect analysis)"), index=None,label_visibility="collapsed", horizontal=True)
                   
-        if option == "Replace with '0' for numeric columns and 'NA' for categorical columns (may affect analysis)":
+        if option == "Replace with '0' (may affect analysis)":
             for col in high_missing_cols:
-                if col in numeric_cols:
-                    df[col].fillna(0, inplace=True)
-                else:
-                    df[col].fillna('NA', inplace=True)
-                # df[col].fillna(0, inplace=True)
-            st.success(f"Missing cells replaced with '0' or 'NA'")
+                df[col].fillna(0, inplace=True)
+            st.success(f"Missing cells replaced with '0'")
                 
         elif option == "Delete rows":
             df.dropna(subset=high_missing_cols, inplace=True)

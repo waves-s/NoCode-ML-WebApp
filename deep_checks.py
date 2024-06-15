@@ -1,6 +1,5 @@
 import streamlit as st
 import pandas as pd
-import deepchecks
 from deepchecks.tabular import Dataset
 from deepchecks.tabular.checks import *
 from deepchecks.tabular.suites import data_integrity
@@ -13,14 +12,12 @@ from deepchecks.tabular.datasets.classification.phishing import load_data
 n_to_show = 100000
 n_samples = 100000
 
-timeout = 120
-
 def create_dataset(df, categorical_cols, target_column):
-    dataset = Dataset(df, cat_features=categorical_cols, features=df.columns.difference(target_column).tolist(), label=target_column[0])
+    
+    dataset = Dataset(df, cat_features = categorical_cols, features=df.columns.difference(target_column).tolist(), label=target_column[0])
     return dataset
 
 def pre_analyse_deep_checks(df, numeric_cols, categorical_cols, other_dtype_cols, target_column, regression_type):
-    from dataframe import column_dtypes
 
     #Converting pandas dataframe to Deepchecks dataframe
     dataset = create_dataset(df, categorical_cols, target_column)
@@ -53,14 +50,13 @@ def pre_analyse_deep_checks(df, numeric_cols, categorical_cols, other_dtype_cols
     
     #Check for Features highly correlated with the Target column
     df, columns_edited_bool = feature_target_relation(dataset, df, target_column)
-    numeric_cols, categorical_cols, other_dtype_cols = column_dtypes(df, target_column)
     dataset = dataset = create_dataset(df, categorical_cols, target_column)
     if columns_edited_bool is True:
         recheck_feature_target_relation(dataset, df, target_column)
     
     #Check for Features highly correlated with another Feature (age vs year of birth)
     df = feature_feature_relation(dataset, df, target_column)
-    numeric_cols, categorical_cols, other_dtype_cols = column_dtypes(df, target_column)
+    categorical_cols = df.select_dtypes(include=['object', 'category','bool','boolean']).columns.difference(target_column).tolist() 
     dataset = create_dataset(df, categorical_cols, target_column)
     
     #Check ColumnsInfo not using
@@ -244,7 +240,7 @@ def feature_target_relation(dataset, df, target_column):
 
 def feature_feature_relation(dataset, df, target_column):
     #Using deepchecks library to calculate feature to feature relation to identify if redundant columns exist. Shows top 10 columns
-    feature_feature_relation_data = FeatureFeatureCorrelation().run(dataset= dataset, feature_importance_timeout=timeout)
+    feature_feature_relation_data = FeatureFeatureCorrelation().run(dataset)
     
     st.subheader(":blue[Feature to Feature Relation Summary:]", divider='grey')
     
@@ -282,7 +278,7 @@ def duplicates(dataset):
     duplicates_data = DataDuplicates(n_to_show=n_to_show).run(dataset)
     st.subheader(":blue[Duplicate Data Summary:]", divider='grey')  
     if duplicates_data.value>0:              
-        st.info("Each row in the table below highlights row index numbers with identical data across all features. Duplicate samples increase the weight the model gives to those samples affecting accuracy and reliability. If these duplicates are intentional, you may disregard this notice. Otherwise, address them by removal or correction in the original dataset.")
+        st.info("Each row in the table below highlights row index numbers with identical data across all features. Duplicate samples increase the weight the model gives to those samples affecting accuracy and reliability. If these duplicates are intentional, you may disregard this notice. Otherwise, addressing them by removal or correction in the original dataset.")
         df_duplicate_data = pd.DataFrame(duplicates_data.display[2])
         st.write(df_duplicate_data)
     else:
@@ -329,20 +325,17 @@ def identifier_label_correlation(df, catagorical_cols, other_dtype_cols):
 
 def outlier_detection(dataset):
     st.subheader(":blue[Outlier Summary:]", divider='grey')
+    outlier_detection_data = OutlierSampleDetection(n_to_show=n_to_show, n_samples=n_samples).run(dataset)
+    df_outlier_detection_data = pd.DataFrame(outlier_detection_data.display[1]) 
+    df_filtered = df_outlier_detection_data.loc[df_outlier_detection_data['Outlier Probability Score'] > 0.8]
     
-    try:
-        outlier_detection_data = OutlierSampleDetection(n_to_show=n_to_show, n_samples=n_samples, timeout=timeout).run(dataset)
-        df_outlier_detection_data = pd.DataFrame(outlier_detection_data.display[1]) 
-        df_filtered = df_outlier_detection_data.loc[df_outlier_detection_data['Outlier Probability Score'] > 0.8]
-        
-        if not df_filtered.empty:
-            st.info("This table shows entries that have a > 80% probability of being an outlier based on the LoOp algorithm. If outliers are important and should stay in the dataset, disregard this notice. Otherwise address them by verification, removal or correction in the original dataset and reload the data.")
-            st.dataframe(df_filtered)
-        else:
-            st.success("No outliers found. Proceed to the next step.")
-    except:
-            st.error("Outlier detection failed either due to data entered or it took longer than 2 mins.")
-            
+    if not df_filtered.empty:
+        st.info("This table shows entries that have a > 80% probability of being an outlier based on the LoOp algorithm . If outliers are important and should stay in the dataset, disregard this notice. Otherwise, address them by verification, removal or correction in the original dataset and reload the data.")
+        st.dataframe(df_filtered)
+    else:
+        st.success("No outliers found. Proceed to the next step.")
+
+
 def class_imbalance(dataset):
     st.subheader(":blue[Class Imbalance Summary:]", divider='grey')
     class_imbalance_data = ClassImbalance(n_to_show=n_to_show).run(dataset)    
